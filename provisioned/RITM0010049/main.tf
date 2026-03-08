@@ -11,52 +11,43 @@ provider "azurerm" {
   features {}
 }
 
-# ── Data sources for existing shared infrastructure ─────────────────────────
+# ── Existing Resource Group ──────────────────────────────────────────────────
 data "azurerm_resource_group" "rg" {
-  name = var.resource_group_name
+  name = "snow-tf-agent-rg"
 }
 
+# ── Existing Container Apps Environment ──────────────────────────────────────
 data "azurerm_container_app_environment" "env" {
-  name                = var.container_app_environment_name
+  name                = "snow-tf-agent-env"
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
+# ── Existing Storage Account ─────────────────────────────────────────────────
 data "azurerm_storage_account" "reports" {
-  name                = var.storage_account_name
+  name                = "snowtfagentsn2025"
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
 # ── Container App ────────────────────────────────────────────────────────────
-module "container_app" {
+module "metrics_container_app" {
   source = "../../modules/container-app"
 
-  name                         = var.container_app_name
+  name                         = "ca-metrics-reporting"
   resource_group_name          = data.azurerm_resource_group.rg.name
-  location                     = var.location
   container_app_environment_id = data.azurerm_container_app_environment.env.id
+  location                     = "eastus2"
 
-  image = var.container_image
-  cpu   = 0.5
-  memory = "1Gi"
+  image        = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+  cpu          = 0.5
+  memory       = "1Gi"
 
-  storage_mounts = [
-    {
-      name                 = "reports"
-      storage_account_id   = data.azurerm_storage_account.reports.id
-      share_name           = var.file_share_name
-      mount_path           = "/reports"
-    }
-  ]
+  storage_account_id   = data.azurerm_storage_account.reports.id
+  storage_account_name = data.azurerm_storage_account.reports.name
 
-  environment  = var.environment
-  cost_center = var.cost_center
+  environment = "prod"
+  cost_center = "CC-ANALYTICS-002"
 
   tags = {
     ticket_id = "RITM0010049"
-    service   = "metrics-reporting"
   }
-}
-
-output "container_app_id" {
-  value = module.container_app.container_app_id
 }
