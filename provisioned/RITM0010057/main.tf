@@ -23,7 +23,7 @@ data "azurerm_container_app_environment" "env" {
 }
 
 # ── Existing Storage Account ─────────────────────────────────────────────────
-data "azurerm_storage_account" "metrics" {
+data "azurerm_storage_account" "output" {
   name                = "snowtfagentsn2025"
   resource_group_name = data.azurerm_resource_group.rg.name
 }
@@ -37,15 +37,15 @@ module "container_app" {
   container_app_environment_id = data.azurerm_container_app_environment.env.id
   location                     = "eastus2"
 
-  image = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+  image        = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+  cpu          = 0.5
+  memory       = "1Gi"
 
-  storage_account_name = data.azurerm_storage_account.metrics.name
-
-  environment = "prod"
-  cost_center = "CC-ANALYTICS-002"
+  storage_account_name = data.azurerm_storage_account.output.name
+  environment          = "dev"
+  cost_center          = "CC-ANALYTICS-002"
 
   tags = {
     ticket_id = "RITM0010057"
-    project   = "metrics-reporting"
   }
 }
