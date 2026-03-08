@@ -11,20 +11,20 @@ provider "azurerm" {
   features {}
 }
 
-# ── Existing Resource Group (reference) ──────────────────────────────────────
+# ── Existing Resource Group ──────────────────────────────────────────────────
 data "azurerm_resource_group" "rg" {
   name = "snow-tf-agent-rg"
 }
 
-# ── Existing Key Vault (reference) ───────────────────────────────────────────
-data "azurerm_key_vault" "kv" {
-  name                = "snow-tf-kv-sn2025"
+# ── Existing Service Bus Namespace ───────────────────────────────────────────
+data "azurerm_servicebus_namespace" "sb" {
+  name                = "snowtfagentbus"
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
-# ── Existing Service Bus Namespace (reference) ───────────────────────────────
-data "azurerm_servicebus_namespace" "sb" {
-  name                = "snowtfagentbus"
+# ── Existing Key Vault ───────────────────────────────────────────────────────
+data "azurerm_key_vault" "kv" {
+  name                = "snow-tf-kv-sn2025"
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
@@ -38,50 +38,50 @@ module "service_plan" {
   os_type             = "Linux"
   sku_name            = "Y1"
   environment         = "dev"
-  cost_center         = var.cost_center
+  cost_center         = "CC-PLATFORM-001"
 
   tags = {
-    ticket_id = var.ticket_id
+    ticket_id = "RITM0010045"
   }
 }
 
-# ── Storage Account for Function App ─────────────────────────────────────────
+# ── Storage Account (Function backing storage) ──────────────────────────────
 module "storage" {
   source = "../../modules/storage-account"
 
-  name                = "sntffuncstor001"
+  name                = "stsnwtffuncdev01"
   resource_group_name = data.azurerm_resource_group.rg.name
   location            = "eastus2"
   account_tier        = "Standard"
   replication_type    = "LRS"
   environment         = "dev"
-  cost_center         = var.cost_center
+  cost_center         = "CC-PLATFORM-001"
 
   tags = {
-    ticket_id = var.ticket_id
+    ticket_id = "RITM0010045"
   }
 }
 
-# ── Function App ─────────────────────────────────────────────────────────────
+# ── Azure Function App ───────────────────────────────────────────────────────
 module "function_app" {
   source = "../../modules/function-app"
 
-  name                       = "func-snowtf-sb-dev"
+  name                       = "func-snowtf-sb-events-dev"
   resource_group_name        = data.azurerm_resource_group.rg.name
   location                   = "eastus2"
   service_plan_id            = module.service_plan.id
   storage_account_name       = module.storage.name
   storage_account_access_key = module.storage.primary_access_key
-  key_vault_id               = data.azurerm_key_vault.kv.id
-  service_bus_namespace_id   = data.azurerm_servicebus_namespace.sb.id
+  runtime                    = "dotnet"
   environment                = "dev"
-  cost_center                = var.cost_center
+  cost_center                = "CC-PLATFORM-001"
+
+  app_settings = {
+    SERVICEBUS_NAMESPACE = data.azurerm_servicebus_namespace.sb.name
+    KEYVAULT_URI         = data.azurerm_key_vault.kv.vault_uri
+  }
 
   tags = {
-    ticket_id = var.ticket_id
+    ticket_id = "RITM0010045"
   }
-}
-
-output "function_app_name" {
-  value = module.function_app.name
 }
