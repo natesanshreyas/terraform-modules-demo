@@ -1,4 +1,5 @@
-variable "location" {
-  type    = string
-  default = "eastus2"
+variable "environment" {
+  description = "Deployment environment"
+  type        = string
+  default     = "prod"
 }
