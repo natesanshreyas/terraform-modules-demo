@@ -11,12 +11,12 @@ provider "azurerm" {
   features {}
 }
 
-# ── Existing Resource Group (reference) ──────────────────────────────────────
+# ── Reference existing Resource Group ────────────────────────────────────────
 data "azurerm_resource_group" "rg" {
   name = "snow-tf-agent-rg"
 }
 
-# ── Existing Key Vault (reference) ───────────────────────────────────────────
+# ── Reference existing Key Vault ─────────────────────────────────────────────
 data "azurerm_key_vault" "kv" {
   name                = "snow-tf-kv-sn2025"
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -26,21 +26,21 @@ data "azurerm_key_vault" "kv" {
 module "redis" {
   source = "../../modules/redis-cache"
 
-  name                = "redis-snowtfagent-dev"
+  name                = "redis-snow-tf-agent"
   resource_group_name = data.azurerm_resource_group.rg.name
-  location            = "eastus2"
+  location            = data.azurerm_resource_group.rg.location
+  sku_name            = "Standard"
   capacity            = 1
   family              = "C"
-  sku_name            = "Standard"
-  enable_non_ssl_port = false
+  environment         = "prod"
+  cost_center         = var.cost_center
 
   tags = {
-    cost_center = "CC-PLATFORM-001"
-    ticket_id   = "RITM0010047"
+    ticket_id = var.ticket_id
   }
 }
 
-# ── Store Redis connection string in existing Key Vault ──────────────────────
+# ── Store Redis connection string in Key Vault ───────────────────────────────
 module "redis_secret" {
   source = "../../modules/key-vault-secret"
 
@@ -49,7 +49,7 @@ module "redis_secret" {
   value        = module.redis.primary_connection_string
 
   tags = {
-    cost_center = "CC-PLATFORM-001"
-    ticket_id   = "RITM0010047"
+    ticket_id  = var.ticket_id
+    cost_center = var.cost_center
   }
 }

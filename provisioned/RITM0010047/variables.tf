@@ -1,5 +1,11 @@
-variable "location" {
+variable "ticket_id" {
   type        = string
-  description = "Azure region"
-  default     = "eastus2"
+  description = "ServiceNow ticket ID"
+  default     = "RITM0010047"
+}
+
+variable "cost_center" {
+  type        = string
+  description = "Cost center for billing and tagging"
+  default     = "CC-PLATFORM-001"
 }
