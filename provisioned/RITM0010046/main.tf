@@ -13,18 +13,18 @@ provider "azurerm" {
 
 # ── Existing Resource Group ──────────────────────────────────────────────────
 data "azurerm_resource_group" "rg" {
-  name = "snow-tf-agent-rg"
+  name = var.resource_group_name
 }
 
 # ── Existing Container Apps Environment ──────────────────────────────────────
 data "azurerm_container_app_environment" "env" {
-  name                = "snow-tf-agent-env"
+  name                = var.container_app_env_name
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
 # ── Existing Storage Account ─────────────────────────────────────────────────
 data "azurerm_storage_account" "reports" {
-  name                = "snowtfagentsn2025"
+  name                = var.storage_account_name
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
@@ -32,21 +32,25 @@ data "azurerm_storage_account" "reports" {
 module "container_app" {
   source = "../../modules/container-app"
 
-  name                         = "ca-metrics-reporting"
+  name                         = var.container_app_name
   resource_group_name          = data.azurerm_resource_group.rg.name
   container_app_environment_id = data.azurerm_container_app_environment.env.id
-  location                     = "eastus2"
+  location                     = var.location
 
-  image = "myregistry.azurecr.io/metrics-reporting:latest"
+  image = var.container_image
 
-  storage_account_id = data.azurerm_storage_account.reports.id
+  storage_mounts = [
+    {
+      name                 = "reports"
+      storage_account_id   = data.azurerm_storage_account.reports.id
+      storage_account_name = data.azurerm_storage_account.reports.name
+      share_name           = var.storage_share_name
+      mount_path           = "/reports"
+    }
+  ]
 
   tags = {
-    cost_center = "CC-ANALYTICS-002"
-    ticket_id  = "RITM0010046"
+    cost_center = var.cost_center
+    ticket_id   = var.ticket_id
   }
-}
-
-output "container_app_id" {
-  value = module.container_app.container_app_id
 }
