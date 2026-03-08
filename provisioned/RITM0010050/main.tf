@@ -11,12 +11,12 @@ provider "azurerm" {
   features {}
 }
 
-# ── Existing Resource Group (Data Source) ────────────────────────────────────
+# ── Existing Resource Group ─────────────────────────────────────────────────
 data "azurerm_resource_group" "rg" {
   name = "snow-tf-agent-rg"
 }
 
-# ── Existing Key Vault (Data Source) ─────────────────────────────────────────
+# ── Existing Key Vault ───────────────────────────────────────────────────────
 data "azurerm_key_vault" "kv" {
   name                = "snow-tf-kv-sn2025"
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -26,17 +26,16 @@ data "azurerm_key_vault" "kv" {
 module "redis" {
   source = "../../modules/redis-cache"
 
-  name                = "redis-snowtfagent-prod"
-  location            = "eastus2"
+  name                = "redis-snowtfagent-dev"
   resource_group_name = data.azurerm_resource_group.rg.name
+  location            = "eastus2"
   capacity            = 1
   family              = "C"
   sku_name            = "Standard"
-  environment         = "prod"
-  cost_center         = "CC-PLATFORM-001"
 
   tags = {
-    ticket_id = "RITM0010050"
+    cost_center = "CC-PLATFORM-001"
+    ticket_id  = "RITM0010050"
   }
 }
 
@@ -49,7 +48,7 @@ module "redis_secret" {
   value        = module.redis.primary_connection_string
 
   tags = {
-    ticket_id  = "RITM0010050"
     cost_center = "CC-PLATFORM-001"
+    ticket_id  = "RITM0010050"
   }
 }
