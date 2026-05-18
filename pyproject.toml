@@ -35,3 +35,6 @@ line-length = 100
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
+markers = [
+  "integration: integration tests that require external/local services like Azurite",
+]

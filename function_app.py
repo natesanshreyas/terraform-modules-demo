@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+from urllib.parse import urlsplit
 from typing import Any
 
 import azure.functions as func
@@ -26,14 +28,14 @@ def _queue_client() -> QueueClient:
 
 
 def _extract_validation_token_raw(url: str) -> str | None:
-    if "?" not in url:
+    raw_query = urlsplit(url).query
+    if not raw_query:
         return None
-    raw_query = url.split("?", 1)[1]
-    for part in raw_query.split("&"):
-        if part.startswith("validationToken="):
-            # Graph expects the exact token echo as received in query string bytes; do not URL-decode.
-            return part[len("validationToken=") :]
-    return None
+    match = re.search(r"(?:^|&)validationToken=([^&]*)", raw_query)
+    if not match:
+        return None
+    # Graph expects the exact token echo as received in query string bytes; do not URL-decode.
+    return match.group(1)
 
 
 def _enqueue_work_items(items: list[dict[str, Any]]) -> None:

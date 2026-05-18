@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import os
 import re
+import threading
 import time
 from typing import Any
 
@@ -20,6 +21,7 @@ _TOKEN_CACHE: dict[str, Any] = {
     "access_token": None,
     "expires_at": 0,
 }
+_TOKEN_CACHE_LOCK = threading.Lock()
 
 
 def parse_graph_resource(resource: str) -> tuple[str, str]:
@@ -106,22 +108,23 @@ class GraphClient:
         )
 
     def get_access_token(self) -> str:
-        now = int(time.time())
-        token = _TOKEN_CACHE.get("access_token")
-        expires_at = int(_TOKEN_CACHE.get("expires_at") or 0)
-        if token and now < (expires_at - 300):
-            return str(token)
+        with _TOKEN_CACHE_LOCK:
+            now = int(time.time())
+            token = _TOKEN_CACHE.get("access_token")
+            expires_at = int(_TOKEN_CACHE.get("expires_at") or 0)
+            if token and now < (expires_at - 300):
+                return str(token)
 
-        result = self._app.acquire_token_for_client(scopes=GRAPH_SCOPE)
-        access_token = result.get("access_token")
-        if not access_token:
-            raise RuntimeError(
-                f"Failed to acquire Graph token: {result.get('error_description') or result}"
-            )
+            result = self._app.acquire_token_for_client(scopes=GRAPH_SCOPE)
+            access_token = result.get("access_token")
+            if not access_token:
+                raise RuntimeError(
+                    f"Failed to acquire Graph token: {result.get('error_description') or result}"
+                )
 
-        _TOKEN_CACHE["access_token"] = access_token
-        _TOKEN_CACHE["expires_at"] = now + int(result.get("expires_in", 3600))
-        return str(access_token)
+            _TOKEN_CACHE["access_token"] = access_token
+            _TOKEN_CACHE["expires_at"] = now + int(result.get("expires_in", 3600))
+            return str(access_token)
 
     def _request(self, method: str, path_or_url: str, **kwargs: Any) -> requests.Response:
         token = self.get_access_token()

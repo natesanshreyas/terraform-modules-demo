@@ -16,7 +16,15 @@ class GraphSubscriptionManager:
         return cls(GraphClient.from_env())
 
     def _expiration_timestamp(self) -> str:
-        minutes = int(os.getenv("GRAPH_SUBSCRIPTION_EXPIRY_MINUTES", "60"))
+        raw_minutes = os.getenv("GRAPH_SUBSCRIPTION_EXPIRY_MINUTES", "60")
+        try:
+            minutes = int(raw_minutes)
+        except ValueError as exc:
+            raise ValueError(
+                "GRAPH_SUBSCRIPTION_EXPIRY_MINUTES must be an integer number of minutes"
+            ) from exc
+        if minutes <= 0:
+            raise ValueError("GRAPH_SUBSCRIPTION_EXPIRY_MINUTES must be greater than zero")
         expires = datetime.now(UTC) + timedelta(minutes=minutes)
         return expires.replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
