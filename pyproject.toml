@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "teams-transcript-function"
+version = "0.1.0"
+description = "Azure Function App for Teams transcript ingestion and requirements merge"
+requires-python = ">=3.11"
+dependencies = [
+  "azure-functions>=1.21.0",
+  "azure-storage-blob>=12.24.0",
+  "azure-storage-queue>=12.12.0",
+  "msal>=1.31.0",
+  "openai>=1.57.0",
+  "requests>=2.32.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.3",
+  "responses>=0.25.3",
+  "ruff>=0.8.6",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

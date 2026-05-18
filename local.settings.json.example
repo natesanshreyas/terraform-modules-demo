@@ -1,0 +1,25 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "WORK_QUEUE_NAME": "transcript-work-items",
+    "GRAPH_TENANT_ID": "",
+    "GRAPH_CLIENT_ID": "",
+    "GRAPH_CLIENT_SECRET": "",
+    "GRAPH_CLIENT_STATE_SECRET": "",
+    "GRAPH_NOTIFICATION_URL": "",
+    "GRAPH_SUBSCRIPTION_ID": "",
+    "GRAPH_SUBSCRIPTION_RESOURCE": "communications/onlineMeetings/getAllTranscripts",
+    "GRAPH_SUBSCRIPTION_EXPIRY_MINUTES": "60",
+    "BLOB_CONNECTION_STRING": "UseDevelopmentStorage=true",
+    "REQUIREMENTS_CONTAINER": "requirements",
+    "REQUIREMENTS_LATEST_BLOB": "requirements_latest.md",
+    "REQUIREMENTS_VERSION_PREFIX": "versions",
+    "MEETING_ROUTING": "[]",
+    "AZURE_OPENAI_ENDPOINT": "",
+    "AZURE_OPENAI_API_KEY": "",
+    "AZURE_OPENAI_DEPLOYMENT": "gpt-4o",
+    "AZURE_OPENAI_API_VERSION": "2024-10-21"
+  }
+}
